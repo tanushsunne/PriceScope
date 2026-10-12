@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingProduct, PriceTrendData } from '../types';
+import { formatINR } from '../utils/formatters';
 import {
   X,
   TrendingDown,
@@ -175,7 +176,7 @@ export const PriceTrendModal: React.FC<PriceTrendModalProps> = ({
                     Current Deal
                   </span>
                   <span className="text-xl font-extrabold tabular-nums tracking-tight">
-                    ${trend.currentPrice.toFixed(2)}
+                    {formatINR(trend.currentPrice)}
                   </span>
                 </div>
               </div>
@@ -185,7 +186,7 @@ export const PriceTrendModal: React.FC<PriceTrendModalProps> = ({
                 <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200/70 dark:border-zinc-800">
                   <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">30-Day Lowest</span>
                   <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                    ${trend.thirtyDayLow.toFixed(2)}
+                    {formatINR(trend.thirtyDayLow)}
                   </span>
                   <span className="text-[10px] text-zinc-400 block mt-0.5">Historical bottom</span>
                 </div>
@@ -193,15 +194,15 @@ export const PriceTrendModal: React.FC<PriceTrendModalProps> = ({
                 <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200/70 dark:border-zinc-800">
                   <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">30-Day Average</span>
                   <span className="text-base font-bold text-zinc-800 dark:text-zinc-200 tabular-nums">
-                    ${trend.thirtyDayAvg.toFixed(2)}
+                    {formatINR(trend.thirtyDayAvg)}
                   </span>
-                  <span className="text-[10px] text-zinc-400 block mt-0.5">Market baseline</span>
+                  <span className="text-[10px] text-zinc-400 block mt-0.5">Indian market baseline</span>
                 </div>
 
                 <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200/70 dark:border-zinc-800">
                   <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">30-Day Highest</span>
                   <span className="text-base font-bold text-zinc-800 dark:text-zinc-200 tabular-nums">
-                    ${trend.thirtyDayHigh.toFixed(2)}
+                    {formatINR(trend.thirtyDayHigh)}
                   </span>
                   <span className="text-[10px] text-zinc-400 block mt-0.5">Peak rate</span>
                 </div>
@@ -215,8 +216,8 @@ export const PriceTrendModal: React.FC<PriceTrendModalProps> = ({
                         : 'text-rose-600 dark:text-rose-400'
                     }`}
                   >
-                    {trend.diffFromAvg <= 0 ? '' : '+'}
-                    ${trend.diffFromAvg.toFixed(2)} ({trend.diffFromAvgPercent}%)
+                    {trend.diffFromAvg <= 0 ? '-' : '+'}
+                    {formatINR(Math.abs(trend.diffFromAvg))} ({trend.diffFromAvgPercent}%)
                   </span>
                   <span className="text-[10px] text-zinc-400 block mt-0.5">
                     {trend.diffFromAvg <= 0 ? 'Below avg' : 'Above avg'}
@@ -243,7 +244,7 @@ export const PriceTrendModal: React.FC<PriceTrendModalProps> = ({
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-0.5 border-t border-dashed border-zinc-400" />
-                      <span>30-Day Avg (${trend.thirtyDayAvg.toFixed(2)})</span>
+                      <span>30-Day Avg ({formatINR(trend.thirtyDayAvg)})</span>
                     </div>
                   </div>
                 </div>
@@ -334,7 +335,7 @@ export const PriceTrendModal: React.FC<PriceTrendModalProps> = ({
                         top: `${(hoveredPoint.y / chartHeight) * 100}%`,
                       }}
                     >
-                      <p className="font-bold tabular-nums">${hoveredPoint.pt.price.toFixed(2)}</p>
+                      <p className="font-bold tabular-nums">{formatINR(hoveredPoint.pt.price)}</p>
                       <p className="text-[10px] opacity-75">{hoveredPoint.pt.fullDate}</p>
                     </div>
                   )}

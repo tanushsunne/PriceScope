@@ -9,11 +9,12 @@ interface SearchBarProps {
 
 const POPULAR_QUERIES = [
   'iPhone 15',
+  'OnePlus 12',
+  'Samsung Galaxy S24',
+  'MacBook Air M2',
   'Sony WH-1000XM5',
   'PlayStation 5',
-  'MacBook Air M3',
-  'Nintendo Switch OLED',
-  'AirPods Pro 2',
+  'boAt Airdopes',
 ];
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -51,7 +52,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search live prices across retailers (e.g. iPhone 15, Sony WH-1000XM5)..."
+            placeholder="Search prices in India across Amazon, Flipkart, Croma, Reliance Digital..."
             disabled={isLoading}
             className="w-full py-4 pl-1 pr-12 text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-transparent border-0 focus:outline-none focus:ring-0 disabled:opacity-60"
             autoComplete="off"

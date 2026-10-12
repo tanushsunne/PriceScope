@@ -34,6 +34,7 @@ export interface ShoppingProduct {
   delivery?: string | null;
   originalIndex: number;
   isRefurbished?: boolean;
+  isPopularStore?: boolean;
   condition?: 'new' | 'refurbished';
   trend?: PriceTrendData;
 }
@@ -41,6 +42,7 @@ export interface ShoppingProduct {
 export type ConditionFilter = 'all' | 'new' | 'refurbished';
 
 export type SortOption =
+  | 'popular_first'
   | 'price_asc'
   | 'price_desc'
   | 'retailer_asc'

@@ -60,7 +60,9 @@ async function startServer() {
       serpUrl.searchParams.set('q', query);
       serpUrl.searchParams.set('api_key', apiKey.trim());
       serpUrl.searchParams.set('hl', 'en');
-      serpUrl.searchParams.set('gl', 'us');
+      serpUrl.searchParams.set('gl', 'in'); // India geolocation
+      serpUrl.searchParams.set('google_domain', 'google.co.in'); // Google India domain
+      serpUrl.searchParams.set('location', 'India');
 
       const response = await fetch(serpUrl.toString(), {
         headers: {
@@ -83,14 +85,18 @@ async function startServer() {
 
       const shoppingResults = Array.isArray(data.shopping_results) ? data.shopping_results : [];
 
-      // Parse shopping results
+      // Regex for popular trusted Indian e-commerce platforms
+      const POPULAR_INDIAN_STORES_REGEX = /\b(amazon|flipkart|croma|reliance\s*digital|tata\s*cliq|tatacliq|vijay\s*sales|jiomart|jio|myntra|ajio|meesho|nykaa|bigbasket|blinkit|zepto|imagine\s*online|poorvika|sangeetha|apple|samsung|oneplus|mi\.com|realme)\b/i;
+
+      // Parse shopping results for Indian market
       const results = shoppingResults.map((item: any, index: number) => {
-        // Extract numeric price
+        // Extract numeric price in INR
         let numericPrice: number | null = null;
         if (typeof item.extracted_price === 'number') {
           numericPrice = item.extracted_price;
         } else if (item.price) {
-          const cleaned = String(item.price).replace(/,/g, '');
+          // Remove currency symbols (₹, Rs, INR) and comma separators
+          const cleaned = String(item.price).replace(/[₹\s,]|Rs\.?|INR/gi, '');
           const match = cleaned.match(/[\d]+(?:\.[\d]{2})?/);
           if (match) {
             const parsed = parseFloat(match[0]);
@@ -98,14 +104,6 @@ async function startServer() {
               numericPrice = parsed;
             }
           }
-        }
-
-        // Clean display price
-        let displayPrice = item.price;
-        if (!displayPrice && numericPrice !== null) {
-          displayPrice = `$${numericPrice.toFixed(2)}`;
-        } else if (!displayPrice) {
-          displayPrice = 'Check retailer';
         }
 
         const retailer = item.source || item.merchant || item.seller || 'Direct Retailer';
@@ -116,27 +114,41 @@ async function startServer() {
         const reviews = typeof item.reviews === 'number' ? item.reviews : null;
         const delivery = item.delivery || (Array.isArray(item.extensions) ? item.extensions[0] : null) || null;
 
-        // Check if price is a monthly installment (e.g. $17.50/mo with 36 monthly payments)
+        // Clean display price in Indian Rupees (₹)
+        let displayPrice = item.price;
+        if (numericPrice !== null) {
+          if (!displayPrice || (!displayPrice.includes('₹') && !/rs/i.test(displayPrice))) {
+            displayPrice = `₹${numericPrice.toLocaleString('en-IN')}`;
+          }
+        } else if (!displayPrice) {
+          displayPrice = 'Check retailer';
+        }
+
+        // Check if price is a monthly installment (e.g. ₹2,499/mo)
         const isInstallment = /\/(?:mo|month)\b|per\s*month/i.test(String(item.price || ''));
         if (isInstallment && numericPrice !== null) {
           const monthsMatch = `${title} ${delivery || ''}`.match(/(\d+)\s*(?:monthly|\/mo|month)/i);
           if (monthsMatch) {
             const months = parseInt(monthsMatch[1], 10);
             if (months > 1 && months <= 48) {
-              const totalEst = Math.round(numericPrice * months * 100) / 100;
+              const totalEst = Math.round(numericPrice * months);
               numericPrice = totalEst;
-              displayPrice = `${item.price} (~$${totalEst.toFixed(0)} total)`;
+              displayPrice = `${item.price} (~₹${totalEst.toLocaleString('en-IN')} total)`;
             }
           } else {
-            // Unspecified installment duration, estimate 24 months or place after full price
             numericPrice = numericPrice * 24;
             displayPrice = `${item.price} (Installment plan)`;
           }
         }
 
-        // Detect if product is refurbished, renewed, pre-owned, or used
+        // Detect if product is refurbished, renewed, pre-owned, or used in Indian market
         const fullText = `${title} ${delivery || ''} ${Array.isArray(item.extensions) ? item.extensions.join(' ') : ''} ${item.tag || ''}`.toLowerCase();
-        const isRefurbished = /\b(refurbished|refurb|renewed|pre-?owned|preowned|used|reconditioned|open-?box|refubished|grade\s*[ab]|second-?hand|like\s*new)\b/i.test(fullText);
+        const isRefurbished =
+          /\b(refurbished|refurb|renewed|pre-?owned|preowned|used|reconditioned|open-?box|refubished|grade\s*[a-d]|as-is|second-?hand|like\s*new|unboxed)\b/i.test(fullText) ||
+          /cashify|control\s*z|budli|ovantica/i.test(retailer) ||
+          /cashify|control\s*z|budli/i.test(title);
+
+        const isPopularStore = POPULAR_INDIAN_STORES_REGEX.test(retailer);
 
         return {
           id: item.product_id || item.position || `item-${index}`,
@@ -150,18 +162,29 @@ async function startServer() {
           reviews,
           delivery,
           isRefurbished,
+          isPopularStore,
           condition: isRefurbished ? 'refurbished' : 'new',
           originalIndex: index,
         };
       });
 
-      // Default sort: Genuine / Brand New items FIRST sorted by price ascending,
-      // with Refurbished / Pre-Owned items positioned below genuine prices
+      // Sort results:
+      // 1. Genuine Brand New products from Popular Indian Stores (Amazon, Flipkart, Croma, etc.)
+      // 2. Genuine Brand New products from other Indian retailers
+      // 3. Refurbished / Used items (Cashify, Renewed, etc.) positioned below
       const sortedResults = [...results].sort((a, b) => {
         // Genuine new products always come before refurbished / used products
-        if (a.isRefurbished !== b.isRefurbished) {
+        if (Boolean(a.isRefurbished) !== Boolean(b.isRefurbished)) {
           return a.isRefurbished ? 1 : -1;
         }
+
+        // Among genuine products, prioritize popular Indian stores (Amazon, Flipkart, etc.)
+        if (!a.isRefurbished && !b.isRefurbished) {
+          if (Boolean(a.isPopularStore) !== Boolean(b.isPopularStore)) {
+            return a.isPopularStore ? -1 : 1;
+          }
+        }
+
         // Then sort by price ascending
         if (a.priceNumber !== null && b.priceNumber !== null) {
           return a.priceNumber - b.priceNumber;

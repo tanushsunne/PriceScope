@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingProduct } from '../types';
-import { ExternalLink, Star, Truck, ShoppingBag, ShieldCheck, LineChart } from 'lucide-react';
+import { ExternalLink, Star, Truck, ShoppingBag, ShieldCheck, LineChart, BadgeCheck } from 'lucide-react';
 
 interface ProductCardProps {
   product: ShoppingProduct;
@@ -22,6 +22,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className={`group relative flex flex-col justify-between bg-white dark:bg-zinc-900 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isLowestPrice
           ? 'border-emerald-500/60 dark:border-emerald-500/50 ring-1 ring-emerald-500/20 shadow-xs'
+          : product.isPopularStore
+          ? 'border-blue-200/80 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700'
           : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
       }`}
     >
@@ -46,8 +48,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Retailer Header & Rank */}
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
           <div className="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300 truncate">
-            <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 group-hover:bg-emerald-500 transition-colors shrink-0" />
-            <span className="truncate">{product.source}</span>
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                product.isPopularStore
+                  ? 'bg-blue-600 dark:bg-blue-400'
+                  : 'bg-zinc-400 dark:bg-zinc-600 group-hover:bg-emerald-500'
+              }`}
+            />
+            <span className="truncate font-semibold">{product.source}</span>
+            {product.isPopularStore && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-sm shrink-0">
+                <BadgeCheck className="w-3 h-3" />
+                <span>Top Store</span>
+              </span>
+            )}
           </div>
           <span className="text-zinc-400 dark:text-zinc-500 text-[11px] tabular-nums shrink-0">
             #{rank}
@@ -118,7 +132,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-zinc-50/75 dark:bg-zinc-800/40 border-t border-zinc-100 dark:border-zinc-800 rounded-b-xl flex items-center justify-between gap-2">
         <div className="flex flex-col">
           <span className="text-[10px] uppercase font-medium text-zinc-400 dark:text-zinc-500 tracking-wider">
-            Price
+            Price (INR)
           </span>
           <span
             className={`text-lg font-bold tabular-nums tracking-tight ${

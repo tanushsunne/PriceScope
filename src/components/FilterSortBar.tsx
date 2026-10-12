@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SortOption, ConditionFilter } from '../types';
-import { ArrowUpDown, SlidersHorizontal, RotateCcw, Check, Sparkles } from 'lucide-react';
+import { ArrowUpDown, SlidersHorizontal, RotateCcw, Check, Sparkles, Building2 } from 'lucide-react';
 
 interface FilterSortBarProps {
   sortOption: SortOption;
@@ -9,7 +9,8 @@ interface FilterSortBarProps {
   onConditionFilterChange: (cond: ConditionFilter) => void;
   countNew: number;
   countRefurbished: number;
-  retailers: { name: string; count: number }[];
+  countPopular: number;
+  retailers: { name: string; count: number; isPopular?: boolean }[];
   selectedRetailers: string[];
   onToggleRetailer: (retailer: string) => void;
   onClearRetailers: () => void;
@@ -29,6 +30,7 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
   onConditionFilterChange,
   countNew,
   countRefurbished,
+  countPopular,
   retailers,
   selectedRetailers,
   onToggleRetailer,
@@ -53,10 +55,10 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             {totalFiltered === totalRaw ? (
-              <span>{totalRaw} Results Found</span>
+              <span>{totalRaw} Indian Offers Found</span>
             ) : (
               <span>
-                {totalFiltered} of {totalRaw} Results
+                {totalFiltered} of {totalRaw} Offers
               </span>
             )}
           </span>
@@ -143,7 +145,8 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
               onChange={(e) => onSortChange(e.target.value as SortOption)}
               className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-750 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-800 dark:focus:ring-zinc-400 transition-colors cursor-pointer"
             >
-              <option value="price_asc">Price: Low to High (Genuine First)</option>
+              <option value="popular_first">Popular Stores First (Amazon, Flipkart, etc.)</option>
+              <option value="price_asc">Price: Low to High (Lowest First)</option>
               <option value="price_desc">Price: High to Low</option>
               <option value="retailer_asc">Retailer Name (A-Z)</option>
               <option value="rating_desc">Highest Rated</option>
@@ -156,15 +159,15 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
       {/* Expandable Filter Tray */}
       {showFilters && (
         <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Price Range Filter */}
+          {/* Price Range Filter (₹) */}
           <div>
             <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-2">
-              Price Range ($)
+              Price Range (₹ INR)
             </span>
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500">
-                  $
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 font-semibold">
+                  ₹
                 </span>
                 <input
                   type="number"
@@ -177,8 +180,8 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
               </div>
               <span className="text-zinc-400 dark:text-zinc-600 text-xs">—</span>
               <div className="relative flex-1">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500">
-                  $
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 font-semibold">
+                  ₹
                 </span>
                 <input
                   type="number"
@@ -195,8 +198,9 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
           {/* Retailer Multi-select Filter */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Filter by Retailer ({retailers.length})
+              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Filter by Indian Retailer ({retailers.length})</span>
               </span>
               {selectedRetailers.length > 0 && (
                 <button
@@ -220,6 +224,8 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors cursor-pointer ${
                       isSelected
                         ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium'
+                        : r.isPopular
+                        ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 hover:bg-blue-100'
                         : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
                     }`}
                   >

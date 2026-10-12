@@ -1,4 +1,5 @@
 import { ShoppingProduct, PriceTrendData, HistoricalPricePoint, DealGrade } from '../types';
+import { formatINR } from '../utils/formatters';
 
 /**
  * Deterministic pseudo-random generator based on a string seed
@@ -16,18 +17,18 @@ function createSeededRandom(seedStr: string) {
 }
 
 /**
- * Generates and fetches 30-day historical price trends for a product.
+ * Generates and fetches 30-day historical price trends for a product in INR.
  * Returns realistic historical price shifts anchored around the current live price.
  */
 export async function fetchProductPriceTrend(product: ShoppingProduct): Promise<PriceTrendData> {
   // Simulate network latency for mock historical data service
   await new Promise((resolve) => setTimeout(resolve, 180));
 
-  const currentPrice = product.priceNumber && product.priceNumber > 0 ? product.priceNumber : 99.99;
+  const currentPrice = product.priceNumber && product.priceNumber > 0 ? product.priceNumber : 49999;
   const rand = createSeededRandom(`${product.id}-${product.source}-${currentPrice.toFixed(0)}`);
 
   // Target baseline average is usually slightly above or around current price
-  const varianceFactor = 0.05 + rand() * 0.12; // 5% to 17% overall band
+  const varianceFactor = 0.05 + rand() * 0.10; // 5% to 15% overall band
   const baseline = currentPrice * (1 + (rand() - 0.35) * varianceFactor);
 
   const history: HistoricalPricePoint[] = [];
@@ -44,17 +45,17 @@ export async function fetchProductPriceTrend(product: ShoppingProduct): Promise<
       runningPrice = currentPrice;
     } else {
       // Gentle random walk
-      const delta = (rand() - 0.48) * (baseline * 0.04);
-      runningPrice = Math.max(baseline * 0.78, Math.min(baseline * 1.25, runningPrice + delta));
+      const delta = (rand() - 0.48) * (baseline * 0.035);
+      runningPrice = Math.max(baseline * 0.82, Math.min(baseline * 1.22, runningPrice + delta));
     }
 
-    const roundedPrice = Math.round(runningPrice * 100) / 100;
-    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const roundedPrice = Math.round(runningPrice);
+    const month = d.toLocaleDateString('en-IN', { month: 'short' });
     const day = d.getDate();
 
     history.push({
       date: `${month} ${day}`,
-      fullDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      fullDate: d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
       price: roundedPrice,
     });
   }
@@ -64,7 +65,7 @@ export async function fetchProductPriceTrend(product: ShoppingProduct): Promise<
   const thirtyDayLow = Math.min(...allPrices);
   const thirtyDayHigh = Math.max(...allPrices);
   const sum = allPrices.reduce((acc, p) => acc + p, 0);
-  const thirtyDayAvg = Math.round((sum / allPrices.length) * 100) / 100;
+  const thirtyDayAvg = Math.round(sum / allPrices.length);
 
   // Mark points that hit lowest
   history.forEach((h) => {
@@ -73,7 +74,7 @@ export async function fetchProductPriceTrend(product: ShoppingProduct): Promise<
     }
   });
 
-  const diffFromAvg = Math.round((currentPrice - thirtyDayAvg) * 100) / 100;
+  const diffFromAvg = Math.round(currentPrice - thirtyDayAvg);
   const diffFromAvgPercent = Math.round(((currentPrice - thirtyDayAvg) / thirtyDayAvg) * 1000) / 10;
 
   // Determine deal rating
@@ -81,22 +82,22 @@ export async function fetchProductPriceTrend(product: ShoppingProduct): Promise<
   let dealVerdict = 'Fair Market Price';
   let recommendation = 'Standard market rate. Safe to purchase if you need it now.';
 
-  if (currentPrice <= thirtyDayLow * 1.01 || diffFromAvgPercent <= -8) {
+  if (currentPrice <= thirtyDayLow * 1.01 || diffFromAvgPercent <= -7) {
     dealGrade = 'steal';
     dealVerdict = 'Lowest Price in 30 Days';
-    recommendation = `Exceptional timing! Current price is $${Math.abs(diffFromAvg).toFixed(2)} (${Math.abs(diffFromAvgPercent)}%) lower than the 30-day average.`;
+    recommendation = `Exceptional timing! Current price is ${formatINR(Math.abs(diffFromAvg))} (${Math.abs(diffFromAvgPercent)}%) lower than the 30-day average.`;
   } else if (diffFromAvgPercent <= -2.5) {
     dealGrade = 'good';
     dealVerdict = 'Good Deal — Below 30-Day Average';
-    recommendation = `Solid price! You're saving ~$${Math.abs(diffFromAvg).toFixed(2)} compared to what shoppers paid recently.`;
+    recommendation = `Solid price! You're saving ~${formatINR(Math.abs(diffFromAvg))} compared to what Indian shoppers paid recently.`;
   } else if (diffFromAvgPercent >= 6) {
     dealGrade = 'pricey';
     dealVerdict = 'Higher Than Usual';
-    recommendation = `This item recently sold for as low as $${thirtyDayLow.toFixed(2)}. Consider setting a price alert or waiting for a dip.`;
+    recommendation = `This item recently sold for as low as ${formatINR(thirtyDayLow)}. Consider setting a price alert or waiting for a festival sale/drop.`;
   } else {
     dealGrade = 'fair';
     dealVerdict = 'Typical 30-Day Price';
-    recommendation = `Price is within $${Math.abs(diffFromAvg).toFixed(2)} of typical 30-day fluctuations.`;
+    recommendation = `Price is within ${formatINR(Math.abs(diffFromAvg))} of typical 30-day Indian market fluctuations.`;
   }
 
   return {

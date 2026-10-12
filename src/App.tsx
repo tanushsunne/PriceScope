@@ -21,15 +21,16 @@ import { SkeletonGrid } from './components/SkeletonGrid';
 import { PriceTrendModal } from './components/PriceTrendModal';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { fetchProductPriceTrend } from './services/historyService';
+import { isPopularIndianStore } from './utils/formatters';
 import {
   ShoppingBag,
   AlertCircle,
   RefreshCw,
   Search,
   Zap,
-  Globe2,
   Sparkles,
   Recycle,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function App() {
@@ -70,8 +71,8 @@ export default function App() {
     setIsDarkMode((prev) => !prev);
   };
 
-  // Sorting and Filtering states
-  const [sortOption, setSortOption] = useState<SortOption>('price_asc');
+  // Sorting and Filtering states - default to popular_first (Amazon, Flipkart, etc. on top)
+  const [sortOption, setSortOption] = useState<SortOption>('popular_first');
   const [conditionFilter, setConditionFilter] = useState<ConditionFilter>('all');
   const [selectedRetailers, setSelectedRetailers] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState<string>('');
@@ -85,7 +86,7 @@ export default function App() {
 
   const searchSectionRef = useRef<HTMLDivElement>(null);
 
-  // Perform live Google Shopping search via backend
+  // Perform live Google Shopping India search via backend
   const executeSearch = async (searchTerm: string) => {
     if (!searchTerm.trim()) return;
 
@@ -120,8 +121,8 @@ export default function App() {
         setProducts([]);
       } else {
         setProducts(data.results || []);
-        // Reset sort to default price_asc on fresh search
-        setSortOption('price_asc');
+        // Reset sort to popular_first on fresh search
+        setSortOption('popular_first');
       }
     } catch (err: any) {
       setErrorMessage(
@@ -157,7 +158,7 @@ export default function App() {
     }
   };
 
-  // Counts of brand new vs refurbished
+  // Counts of brand new vs refurbished vs popular stores
   const countNew = useMemo(
     () => products.filter((p) => !p.isRefurbished).length,
     [products]
@@ -166,8 +167,12 @@ export default function App() {
     () => products.filter((p) => p.isRefurbished).length,
     [products]
   );
+  const countPopular = useMemo(
+    () => products.filter((p) => p.isPopularStore && !p.isRefurbished).length,
+    [products]
+  );
 
-  // Derive unique retailers with item counts
+  // Derive unique retailers with item counts and popular Indian store sorting
   const retailers = useMemo(() => {
     const counts = new Map<string, number>();
     products.forEach((p) => {
@@ -175,8 +180,17 @@ export default function App() {
       counts.set(source, (counts.get(source) || 0) + 1);
     });
     return Array.from(counts.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
+      .map(([name, count]) => ({
+        name,
+        count,
+        isPopular: isPopularIndianStore(name),
+      }))
+      .sort((a, b) => {
+        if (a.isPopular !== b.isPopular) {
+          return a.isPopular ? -1 : 1;
+        }
+        return b.count - a.count;
+      });
   }, [products]);
 
   // Filter products based on active filters
@@ -214,11 +228,34 @@ export default function App() {
     });
   }, [products, conditionFilter, selectedRetailers, minPrice, maxPrice]);
 
-  // Sort filtered products: Genuine real price items FIRST, Refurbished / Used items BELOW
+  // Sort filtered products: Genuine real price items FIRST, with popular Indian websites on top
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
 
     switch (sortOption) {
+      case 'popular_first':
+        return list.sort((a, b) => {
+          // Genuine real price items always before refurbished
+          if (Boolean(a.isRefurbished) !== Boolean(b.isRefurbished)) {
+            return a.isRefurbished ? 1 : -1;
+          }
+
+          // Among genuine items: popular stores like Amazon, Flipkart, Croma on top!
+          if (!a.isRefurbished && !b.isRefurbished) {
+            if (Boolean(a.isPopularStore) !== Boolean(b.isPopularStore)) {
+              return a.isPopularStore ? -1 : 1;
+            }
+          }
+
+          // Then sort by price ascending
+          if (a.priceNumber !== null && b.priceNumber !== null) {
+            return a.priceNumber - b.priceNumber;
+          }
+          if (a.priceNumber !== null) return -1;
+          if (b.priceNumber !== null) return 1;
+          return 0;
+        });
+
       case 'price_asc':
         return list.sort((a, b) => {
           // Genuine real price items first
@@ -274,7 +311,7 @@ export default function App() {
     [sortedProducts]
   );
 
-  // Compute lowest price strictly among genuine brand new products
+  // Compute lowest price strictly among genuine brand new products in INR
   const lowestGenuinePrice = useMemo(() => {
     const genuineWithPrices = products.filter(
       (p) => !p.isRefurbished && typeof p.priceNumber === 'number' && p.priceNumber > 0
@@ -285,7 +322,6 @@ export default function App() {
 
   // Compute price insights across genuine products if available, or all items
   const insights: PriceInsights = useMemo(() => {
-    // Focus insights primarily on genuine products so users see true retail comparison
     const targetSet = products.filter(
       (p): p is ShoppingProduct & { priceNumber: number } =>
         !p.isRefurbished && typeof p.priceNumber === 'number' && !isNaN(p.priceNumber) && p.priceNumber > 0
@@ -354,7 +390,7 @@ export default function App() {
     setMinPrice('');
     setMaxPrice('');
     setConditionFilter('all');
-    setSortOption('price_asc');
+    setSortOption('popular_first');
   };
 
   const scrollToSearch = () => {
@@ -374,16 +410,16 @@ export default function App() {
         {/* Search Hero Area */}
         <div ref={searchSectionRef} className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-900/5 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full text-xs font-medium mb-4">
-            <Globe2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>Live Google Shopping Intelligence via SerpApi</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Google Shopping India Live Prices (₹ INR)</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight mb-4 font-['Syne'] text-balance">
-            Compare Live Retailer Prices in Seconds
+            Compare Indian Store Prices in Seconds
           </h1>
 
           <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto mb-8 leading-relaxed">
-            Genuine brand new prices prioritized first, with refurbished and pre-owned deals clearly separated below.
+            Real prices in Indian Rupees (₹) across Amazon, Flipkart, Croma, Reliance Digital, and verified Indian retailers.
           </p>
 
           <SearchBar
@@ -443,6 +479,7 @@ export default function App() {
               onConditionFilterChange={setConditionFilter}
               countNew={countNew}
               countRefurbished={countRefurbished}
+              countPopular={countPopular}
               retailers={retailers}
               selectedRetailers={selectedRetailers}
               onToggleRetailer={handleToggleRetailer}
@@ -462,12 +499,21 @@ export default function App() {
                 {/* Genuine / Brand New Section */}
                 {genuineNewResults.length > 0 && (
                   <div>
-                    {refurbishedResults.length > 0 && conditionFilter === 'all' && (
-                      <div className="flex items-center gap-2 mb-4 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Genuine Brand New Offers ({genuineNewResults.length})</span>
+                    {conditionFilter === 'all' && (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Genuine Brand New Offers ({genuineNewResults.length})</span>
+                        </div>
+                        {countPopular > 0 && (
+                          <div className="inline-flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-900/60">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                            <span>Popular Stores (Amazon, Flipkart, Croma, etc.) Prioritized on Top</span>
+                          </div>
+                        )}
                       </div>
                     )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                       {genuineNewResults.map((product, idx) => {
                         const isLowest =
@@ -547,10 +593,10 @@ export default function App() {
                 <Search className="w-6 h-6" />
               </div>
               <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                Real-Time Shopping Comparison & Price Trends
+                Real-Time Price Comparison in India (₹)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                Type any consumer electronic, fashion item, appliance, or gadget above to stream live pricing and historical 30-day deal analysis.
+                Type any mobile, laptop, headphone, or gadget above to compare live prices across Amazon India, Flipkart, Croma, Reliance Digital, and 50+ stores.
               </p>
             </div>
 
@@ -559,30 +605,30 @@ export default function App() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100 font-semibold text-sm">
                   <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Genuine Price Prioritization</span>
+                  <span>Amazon & Flipkart on Top</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Real brand-new retail prices always appear at the top, preventing refurbished items from masking genuine deals.
+                  Trusted e-commerce giants like Amazon.in, Flipkart, Croma, and Reliance Digital are surfaced prominently at the top of results.
                 </p>
               </div>
 
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100 font-semibold text-sm">
                   <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Live Google Shopping Feed</span>
+                  <span>Indian Rupee (₹) Pricing</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Direct connection to Google Shopping engine ensuring live prices, stock statuses, and seller links per query.
+                  All listings, discounts, and 30-day historical trend indicators are calculated in Indian Rupees with live tax-inclusive prices.
                 </p>
               </div>
 
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100 font-semibold text-sm">
                   <Recycle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span>Refurbished Separation</span>
+                  <span>Refurbished Kept Below</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Pre-owned, renewed, and refurbished options are clearly badged and organized below genuine retail prices.
+                  Refurbished and pre-owned deals (Cashify, Renewed, etc.) are kept cleanly below genuine brand-new retail prices.
                 </p>
               </div>
             </div>
@@ -606,9 +652,9 @@ export default function App() {
       <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-6 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-400">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-['Syne']">PriceScope</span>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-['Syne']">PriceScope India</span>
             <span>·</span>
-            <span>Powered by SerpApi Google Shopping API</span>
+            <span>Powered by Google Shopping India via SerpApi</span>
           </div>
 
           <div className="flex items-center gap-4">

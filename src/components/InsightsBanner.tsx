@@ -1,5 +1,6 @@
 import React from 'react';
 import { PriceInsights } from '../types';
+import { formatINR } from '../utils/formatters';
 import { TrendingDown, BarChart3 } from 'lucide-react';
 
 interface InsightsBannerProps {
@@ -19,7 +20,7 @@ export const InsightsBanner: React.FC<InsightsBannerProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
             <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Market Price Overview</span>
+            <span>Indian Market Price Overview</span>
           </div>
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
             Price comparison for <span className="text-emerald-700 dark:text-emerald-400">"{query}"</span>
@@ -30,7 +31,7 @@ export const InsightsBanner: React.FC<InsightsBannerProps> = ({
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-lg text-xs font-medium text-emerald-800 dark:text-emerald-300 self-start md:self-auto">
             <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>
-              Save up to <strong className="font-bold tabular-nums">${insights.savings.toFixed(2)}</strong> ({insights.savingsPercent.toFixed(0)}%) by comparing retailers
+              Save up to <strong className="font-bold tabular-nums">{formatINR(insights.savings)}</strong> ({insights.savingsPercent.toFixed(0)}%) by comparing Indian stores
             </span>
           </div>
         )}
@@ -43,7 +44,7 @@ export const InsightsBanner: React.FC<InsightsBannerProps> = ({
             Lowest Price
           </span>
           <span className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
-            ${insights.minPrice.toFixed(2)}
+            {formatINR(insights.minPrice)}
           </span>
           <span className="text-[11px] text-emerald-600/90 dark:text-emerald-400/80 block truncate mt-0.5">
             via {insights.bestMerchant}
@@ -56,7 +57,7 @@ export const InsightsBanner: React.FC<InsightsBannerProps> = ({
             Highest Price
           </span>
           <span className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-200 tabular-nums">
-            ${insights.maxPrice.toFixed(2)}
+            {formatINR(insights.maxPrice)}
           </span>
           <span className="text-[11px] text-zinc-400 dark:text-zinc-500 block mt-0.5">
             Range high
@@ -66,26 +67,26 @@ export const InsightsBanner: React.FC<InsightsBannerProps> = ({
         {/* Average Price */}
         <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200/60 dark:border-zinc-800">
           <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium block mb-1">
-            Average Market Price
+            Average Indian Market Rate
           </span>
           <span className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-200 tabular-nums">
-            ${insights.avgPrice.toFixed(2)}
+            {formatINR(insights.avgPrice)}
           </span>
           <span className="text-[11px] text-zinc-400 dark:text-zinc-500 block mt-0.5">
-            Across all offers
+            Across all Indian sellers
           </span>
         </div>
 
         {/* Offers Compared */}
         <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200/60 dark:border-zinc-800">
           <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium block mb-1">
-            Retailers Compared
+            Stores Compared
           </span>
           <span className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-200 tabular-nums">
             {insights.totalDeals}
           </span>
           <span className="text-[11px] text-zinc-400 dark:text-zinc-500 block mt-0.5">
-            Live Google Shopping
+            Google Shopping India
           </span>
         </div>
       </div>
