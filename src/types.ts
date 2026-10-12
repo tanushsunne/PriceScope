@@ -21,6 +21,14 @@ export interface PriceTrendData {
   history: HistoricalPricePoint[];
 }
 
+export interface AiPriceEstimate {
+  estimatedPriceINR: number;
+  minRealisticPriceINR: number;
+  maxRealisticPriceINR: number;
+  isAccessoryQuery: boolean;
+  explanation?: string;
+}
+
 export interface ShoppingProduct {
   id: string;
   title: string;
@@ -35,6 +43,9 @@ export interface ShoppingProduct {
   originalIndex: number;
   isRefurbished?: boolean;
   isPopularStore?: boolean;
+  isAccessory?: boolean;
+  isNearTargetPrice?: boolean;
+  priceDiffFromTarget?: number;
   condition?: 'new' | 'refurbished';
   trend?: PriceTrendData;
 }
@@ -42,6 +53,7 @@ export interface ShoppingProduct {
 export type ConditionFilter = 'all' | 'new' | 'refurbished';
 
 export type SortOption =
+  | 'ai_match'
   | 'popular_first'
   | 'price_asc'
   | 'price_desc'
@@ -61,6 +73,7 @@ export interface PriceInsights {
 
 export interface SearchApiResponse {
   query?: string;
+  aiEstimate?: AiPriceEstimate | null;
   total?: number;
   results: ShoppingProduct[];
   error?: string;

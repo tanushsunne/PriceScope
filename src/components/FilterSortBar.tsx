@@ -145,8 +145,9 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
               onChange={(e) => onSortChange(e.target.value as SortOption)}
               className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-750 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-800 dark:focus:ring-zinc-400 transition-colors cursor-pointer"
             >
+              <option value="ai_match">AI Price Match (Around Estimated Price)</option>
               <option value="popular_first">Popular Stores First (Amazon, Flipkart, etc.)</option>
-              <option value="price_asc">Price: Low to High (Lowest First)</option>
+              <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
               <option value="retailer_asc">Retailer Name (A-Z)</option>
               <option value="rating_desc">Highest Rated</option>

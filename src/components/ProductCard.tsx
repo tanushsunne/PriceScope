@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingProduct } from '../types';
-import { ExternalLink, Star, Truck, ShoppingBag, ShieldCheck, LineChart, BadgeCheck } from 'lucide-react';
+import { ExternalLink, Star, Truck, ShoppingBag, ShieldCheck, LineChart, BadgeCheck, Target } from 'lucide-react';
 
 interface ProductCardProps {
   product: ShoppingProduct;
@@ -22,13 +22,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className={`group relative flex flex-col justify-between bg-white dark:bg-zinc-900 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isLowestPrice
           ? 'border-emerald-500/60 dark:border-emerald-500/50 ring-1 ring-emerald-500/20 shadow-xs'
+          : product.isNearTargetPrice
+          ? 'border-emerald-300 dark:border-emerald-800/80 hover:border-emerald-400'
           : product.isPopularStore
           ? 'border-blue-200/80 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700'
           : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
       }`}
     >
-      {/* Top Banner for Lowest Genuine Price or Refurbished Status */}
-      {isLowestPrice && !product.isRefurbished ? (
+      {/* Top Banner for Lowest Genuine Price, AI Match, or Refurbished Status */}
+      {isLowestPrice && !product.isRefurbished && !product.isAccessory ? (
         <div className="absolute -top-3 left-4 z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-full shadow-sm">
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -39,6 +41,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="absolute -top-3 left-4 z-10">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 text-[11px] font-semibold rounded-full shadow-2xs">
             <span>Refurbished / Pre-Owned</span>
+          </div>
+        </div>
+      ) : product.isNearTargetPrice ? (
+        <div className="absolute -top-3 left-4 z-10">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold rounded-full shadow-2xs">
+            <Target className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+            <span>AI Price Match</span>
+          </div>
+        </div>
+      ) : product.isAccessory ? (
+        <div className="absolute -top-3 left-4 z-10">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-[11px] font-medium rounded-full shadow-2xs">
+            <span>Accessory / Cover</span>
           </div>
         </div>
       ) : null}
@@ -97,8 +112,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Clean Metadata Line (Zero-pill discipline) */}
         <div className="flex items-center flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400 mb-4 mt-auto pt-1">
-          <span className={`font-medium ${product.isRefurbished ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-            {product.isRefurbished ? 'Refurbished' : 'Brand New'}
+          <span
+            className={`font-medium ${
+              product.isRefurbished
+                ? 'text-amber-700 dark:text-amber-400'
+                : product.isAccessory
+                ? 'text-zinc-500 dark:text-zinc-400'
+                : 'text-emerald-700 dark:text-emerald-400'
+            }`}
+          >
+            {product.isRefurbished ? 'Refurbished' : product.isAccessory ? 'Case / Accessory' : 'Brand New'}
           </span>
 
           <span className="text-zinc-300 dark:text-zinc-600" aria-hidden="true">·</span>

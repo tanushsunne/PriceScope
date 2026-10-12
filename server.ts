@@ -9,26 +9,116 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+interface GeminiPriceEstimate {
+  estimatedPriceINR: number;
+  minRealisticPriceINR: number;
+  maxRealisticPriceINR: number;
+  isAccessoryQuery: boolean;
+  explanation?: string;
+}
+
+/**
+ * Uses Gemini AI to estimate the authentic retail price range in Indian Rupees (INR)
+ * for the core product specified in the search query.
+ */
+async function fetchGeminiPriceEstimate(query: string): Promise<GeminiPriceEstimate | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY' || apiKey.trim() === '') {
+    return null;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey.trim()}`;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are an Indian retail e-commerce price intelligence engine.
+Analyze this search query: "${query}".
+The user wants to buy this item in India.
+1. Determine if the user is searching for a main product/device (e.g., "OnePlus 12", "iPhone 15", "Sony WH-1000XM5", "Nike Air Jordan") vs an accessory (e.g., "phone cover", "case", "tempered glass", "charging cable").
+2. Estimate the typical brand-new retail price in Indian Rupees (INR / ₹) for the authentic product in India.
+3. Provide a realistic minimum price threshold to filter out low-cost covers and accessories (e.g. for OnePlus 12, phone covers cost ₹150-₹400 while the phone is ₹55,000-₹65,000).
+
+Return strictly a JSON object:
+{
+  "estimatedPriceINR": number,
+  "minRealisticPriceINR": number,
+  "maxRealisticPriceINR": number,
+  "isAccessoryQuery": boolean,
+  "explanation": string
+}`,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.warn('Gemini price estimate HTTP status:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return null;
+
+    const parsed = JSON.parse(text);
+    return {
+      estimatedPriceINR: Number(parsed.estimatedPriceINR) || 0,
+      minRealisticPriceINR: Number(parsed.minRealisticPriceINR) || 0,
+      maxRealisticPriceINR: Number(parsed.maxRealisticPriceINR) || 0,
+      isAccessoryQuery: Boolean(parsed.isAccessoryQuery),
+      explanation: typeof parsed.explanation === 'string' ? parsed.explanation : '',
+    };
+  } catch (err) {
+    console.warn('Gemini price estimate skipped:', err);
+    return null;
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   app.use(express.json());
 
-  // Check if SerpApi key is configured on server
+  // Check if SerpApi and Gemini keys are configured on server
   app.get('/api/status', (_req: Request, res: Response) => {
-    const hasKey = Boolean(
+    const hasSerpKey = Boolean(
       process.env.SERPAPI_KEY &&
       process.env.SERPAPI_KEY !== 'your_key_here' &&
       process.env.SERPAPI_KEY.trim() !== ''
     );
+    const hasGeminiKey = Boolean(
+      process.env.GEMINI_API_KEY &&
+      process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY' &&
+      process.env.GEMINI_API_KEY.trim() !== ''
+    );
     res.json({
-      configured: hasKey,
+      configured: hasSerpKey,
+      geminiConfigured: hasGeminiKey,
       timestamp: new Date().toISOString(),
     });
   });
 
-  // SerpApi Google Shopping search endpoint
+  // SerpApi Google Shopping search endpoint with Gemini price matching
   app.get('/api/search', async (req: Request, res: Response) => {
     const query = (req.query.q as string || '').trim();
 
@@ -40,7 +130,6 @@ async function startServer() {
       });
     }
 
-    // Check for API key in server env or client request header/query
     const apiKey =
       (req.headers['x-serpapi-key'] as string) ||
       (req.query.api_key as string) ||
@@ -64,26 +153,33 @@ async function startServer() {
       serpUrl.searchParams.set('google_domain', 'google.co.in'); // Google India domain
       serpUrl.searchParams.set('location', 'India');
 
-      const response = await fetch(serpUrl.toString(), {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'PriceScope-App/1.0',
-        },
-      });
+      // Fetch Gemini AI price estimate and SerpApi results in parallel for maximum speed
+      const [aiEstimate, serpData] = await Promise.all([
+        fetchGeminiPriceEstimate(query),
+        fetch(serpUrl.toString(), {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'PriceScope-App/1.0',
+          },
+        }).then(async (r) => {
+          if (!r.ok) {
+            const errBody = await r.json().catch(() => ({}));
+            return { error: errBody.error || `HTTP ${r.status}` };
+          }
+          return r.json();
+        }).catch((err) => ({ error: err.message })),
+      ]);
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        const errorMsg = data.error || `SerpApi responded with HTTP status ${response.status}`;
-        console.error('SerpApi error response:', errorMsg);
-        return res.status(response.status >= 400 && response.status < 500 ? response.status : 502).json({
-          error: errorMsg,
+      if (serpData.error) {
+        console.error('SerpApi error response:', serpData.error);
+        return res.status(502).json({
+          error: serpData.error,
           code: 'SERPAPI_ERROR',
           results: [],
         });
       }
 
-      const shoppingResults = Array.isArray(data.shopping_results) ? data.shopping_results : [];
+      const shoppingResults = Array.isArray(serpData.shopping_results) ? serpData.shopping_results : [];
 
       // Regex for popular trusted Indian e-commerce platforms
       const POPULAR_INDIAN_STORES_REGEX = /\b(amazon|flipkart|croma|reliance\s*digital|tata\s*cliq|tatacliq|vijay\s*sales|jiomart|jio|myntra|ajio|meesho|nykaa|bigbasket|blinkit|zepto|imagine\s*online|poorvika|sangeetha|apple|samsung|oneplus|mi\.com|realme)\b/i;
@@ -95,7 +191,6 @@ async function startServer() {
         if (typeof item.extracted_price === 'number') {
           numericPrice = item.extracted_price;
         } else if (item.price) {
-          // Remove currency symbols (₹, Rs, INR) and comma separators
           const cleaned = String(item.price).replace(/[₹\s,]|Rs\.?|INR/gi, '');
           const match = cleaned.match(/[\d]+(?:\.[\d]{2})?/);
           if (match) {
@@ -150,6 +245,32 @@ async function startServer() {
 
         const isPopularStore = POPULAR_INDIAN_STORES_REGEX.test(retailer);
 
+        // Detect if product is a phone case/cover/screen protector when user searched for a main device
+        const isAccessory = Boolean(
+          aiEstimate &&
+          !aiEstimate.isAccessoryQuery &&
+          aiEstimate.minRealisticPriceINR > 500 &&
+          (
+            (numericPrice !== null && numericPrice < aiEstimate.minRealisticPriceINR * 0.45) ||
+            /\b(back\s*cover|flip\s*cover|phone\s*case|tempered\s*glass|screen\s*protector|pouch|sleeve|skin|protective\s*case|silicone\s*case|armor\s*case|phone\s*cover|charging\s*cable|case\s*cover)\b/i.test(title)
+          )
+        );
+
+        // Closeness to Gemini estimated target price
+        const priceDiff =
+          numericPrice !== null && aiEstimate && aiEstimate.estimatedPriceINR > 0
+            ? Math.abs(numericPrice - aiEstimate.estimatedPriceINR)
+            : null;
+
+        const isNearTargetPrice = Boolean(
+          numericPrice !== null &&
+          aiEstimate &&
+          aiEstimate.estimatedPriceINR > 0 &&
+          !isAccessory &&
+          numericPrice >= aiEstimate.minRealisticPriceINR * 0.65 &&
+          numericPrice <= aiEstimate.maxRealisticPriceINR * 1.45
+        );
+
         return {
           id: item.product_id || item.position || `item-${index}`,
           title,
@@ -163,29 +284,60 @@ async function startServer() {
           delivery,
           isRefurbished,
           isPopularStore,
+          isAccessory,
+          isNearTargetPrice,
+          priceDiffFromTarget: priceDiff !== null ? priceDiff : undefined,
           condition: isRefurbished ? 'refurbished' : 'new',
           originalIndex: index,
         };
       });
 
       // Sort results:
-      // 1. Genuine Brand New products from Popular Indian Stores (Amazon, Flipkart, Croma, etc.)
-      // 2. Genuine Brand New products from other Indian retailers
-      // 3. Refurbished / Used items (Cashify, Renewed, etc.) positioned below
+      // 1. Genuine Brand New devices around the Gemini target price (isNearTargetPrice)
+      //    - Popular Indian Stores on top, sorted by closest to Gemini estimate
+      // 2. Genuine Brand New devices outside target price range
+      // 3. Low-cost phone covers and accessories (if user searched for device)
+      // 4. Refurbished / Used items positioned below genuine prices
       const sortedResults = [...results].sort((a, b) => {
-        // Genuine new products always come before refurbished / used products
+        // 1. Genuine new products always come before refurbished / used products
         if (Boolean(a.isRefurbished) !== Boolean(b.isRefurbished)) {
           return a.isRefurbished ? 1 : -1;
         }
 
-        // Among genuine products, prioritize popular Indian stores (Amazon, Flipkart, etc.)
+        // 2. Main products before accessories (covers/cases)
         if (!a.isRefurbished && !b.isRefurbished) {
+          if (Boolean(a.isAccessory) !== Boolean(b.isAccessory)) {
+            return a.isAccessory ? 1 : -1;
+          }
+
+          // 3. If Gemini estimate is available, prioritize products around the target price
+          if (aiEstimate && aiEstimate.estimatedPriceINR > 0) {
+            if (Boolean(a.isNearTargetPrice) !== Boolean(b.isNearTargetPrice)) {
+              return a.isNearTargetPrice ? -1 : 1;
+            }
+
+            // If both are near target price:
+            if (a.isNearTargetPrice && b.isNearTargetPrice) {
+              // Prioritize popular stores
+              if (Boolean(a.isPopularStore) !== Boolean(b.isPopularStore)) {
+                return a.isPopularStore ? -1 : 1;
+              }
+              // Closeness to target price
+              const diffA = a.priceDiffFromTarget ?? Infinity;
+              const diffB = b.priceDiffFromTarget ?? Infinity;
+              if (diffA !== diffB) {
+                return diffA - diffB;
+              }
+            }
+          }
+
+          // Prioritize popular stores
           if (Boolean(a.isPopularStore) !== Boolean(b.isPopularStore)) {
             return a.isPopularStore ? -1 : 1;
           }
         }
 
-        // Then sort by price ascending
+        // Default sort by price ascending
         if (a.priceNumber !== null && b.priceNumber !== null) {
           return a.priceNumber - b.priceNumber;
         }
@@ -196,6 +348,7 @@ async function startServer() {
 
       return res.json({
         query,
+        aiEstimate,
         total: results.length,
         results: sortedResults,
       });
