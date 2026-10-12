@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingProduct } from '../types';
-import { ExternalLink, Star, Truck, ShoppingBag, ShieldCheck, LineChart, BadgeCheck, Target } from 'lucide-react';
+import { ExternalLink, Star, Truck, ShoppingBag, ShieldCheck, LineChart, BadgeCheck, Target, Globe } from 'lucide-react';
 
 interface ProductCardProps {
   product: ShoppingProduct;
@@ -30,7 +30,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       }`}
     >
       {/* Top Banner for Lowest Genuine Price, AI Match, or Refurbished Status */}
-      {isLowestPrice && !product.isRefurbished && !product.isAccessory ? (
+      {isLowestPrice && !product.isRefurbished && !product.isAccessory && !product.isCrossBorderImport ? (
         <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
           <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-emerald-600 text-white text-[10px] sm:text-xs font-semibold rounded-full shadow-sm truncate">
             <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
@@ -43,11 +43,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <span className="truncate">Refurbished / Pre-Owned</span>
           </div>
         </div>
+      ) : product.isCrossBorderImport ? (
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-[10px] sm:text-[11px] font-medium rounded-full shadow-2xs truncate">
+            <Globe className="w-3 h-3 text-zinc-500 shrink-0" />
+            <span className="truncate">Import / Cross-Border</span>
+          </div>
+        </div>
       ) : product.isNearTargetPrice ? (
         <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
           <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-semibold rounded-full shadow-2xs truncate">
             <Target className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span className="truncate">AI Price Match</span>
+            <span className="truncate">{product.isExactModelMatch ? 'Exact Model Match' : 'Price Match'}</span>
           </div>
         </div>
       ) : product.isAccessory ? (
@@ -67,6 +74,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
                 product.isPopularStore
                   ? 'bg-blue-600 dark:bg-blue-400'
+                  : product.isCrossBorderImport
+                  ? 'bg-amber-500'
                   : 'bg-zinc-400 dark:bg-zinc-600 group-hover:bg-emerald-500'
               }`}
             />
@@ -74,7 +83,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.isPopularStore && (
               <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-[9px] sm:text-[10px] font-bold rounded-sm shrink-0">
                 <BadgeCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                <span>Top</span>
+                <span>Top Store</span>
               </span>
             )}
           </div>

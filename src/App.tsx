@@ -12,6 +12,7 @@ import {
   PriceTrendData,
   ConditionFilter,
   AiPriceEstimate,
+  ServerStatusResponse,
 } from './types';
 import { Navbar } from './components/Navbar';
 import { SearchBar } from './components/SearchBar';
@@ -20,6 +21,7 @@ import { InsightsBanner } from './components/InsightsBanner';
 import { FilterSortBar } from './components/FilterSortBar';
 import { SkeletonGrid } from './components/SkeletonGrid';
 import { PriceTrendModal } from './components/PriceTrendModal';
+import { RenderGuideModal } from './components/RenderGuideModal';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { fetchProductPriceTrend } from './services/historyService';
 import { isPopularIndianStore, formatINR } from './utils/formatters';
@@ -34,6 +36,7 @@ import {
   CheckCircle2,
   Target,
   Layers,
+  Info,
 } from 'lucide-react';
 
 export default function App() {
@@ -44,6 +47,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [serverStatus, setServerStatus] = useState<ServerStatusResponse | null>(null);
+  const [isRenderGuideOpen, setIsRenderGuideOpen] = useState(false);
+  const [dismissGeminiTip, setDismissGeminiTip] = useState(false);
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -74,6 +80,14 @@ export default function App() {
   const toggleDarkMode = () => {
     setIsDarkMode((prev) => !prev);
   };
+
+  // Check server configuration status
+  useEffect(() => {
+    fetch('/api/status')
+      .then((r) => r.json())
+      .then((data) => setServerStatus(data))
+      .catch((err) => console.warn('Status check failed:', err));
+  }, []);
 
   // Sorting and Filtering states - default to ai_match
   const [sortOption, setSortOption] = useState<SortOption>('ai_match');
@@ -253,7 +267,12 @@ export default function App() {
               return a.isAccessory ? 1 : -1;
             }
 
-            // 3. Products in target price range first
+            // 3. Relevant products before mismatched brands
+            if (Boolean(a.isMismatched) !== Boolean(b.isMismatched)) {
+              return a.isMismatched ? 1 : -1;
+            }
+
+            // 4. Products in target price range first
             if (Boolean(a.isNearTargetPrice) !== Boolean(b.isNearTargetPrice)) {
               return a.isNearTargetPrice ? -1 : 1;
             }
@@ -294,6 +313,9 @@ export default function App() {
             if (Boolean(a.isAccessory) !== Boolean(b.isAccessory)) {
               return a.isAccessory ? 1 : -1;
             }
+            if (Boolean(a.isMismatched) !== Boolean(b.isMismatched)) {
+              return a.isMismatched ? 1 : -1;
+            }
             if (Boolean(a.isPopularStore) !== Boolean(b.isPopularStore)) {
               return a.isPopularStore ? -1 : 1;
             }
@@ -314,6 +336,9 @@ export default function App() {
           if (!a.isRefurbished && !b.isRefurbished) {
             if (Boolean(a.isAccessory) !== Boolean(b.isAccessory)) {
               return a.isAccessory ? 1 : -1;
+            }
+            if (Boolean(a.isMismatched) !== Boolean(b.isMismatched)) {
+              return a.isMismatched ? 1 : -1;
             }
           }
           if (a.priceNumber !== null && b.priceNumber !== null) {
@@ -462,14 +487,42 @@ export default function App() {
         onScrollToSearch={scrollToSearch}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
+        serverStatus={serverStatus}
+        onOpenRenderGuide={() => setIsRenderGuideOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 overflow-x-hidden">
+        {/* Render Environment Setup Notification if GEMINI_API_KEY is not configured on server */}
+        {serverStatus && serverStatus.geminiConfigured === false && !dismissGeminiTip && (
+          <div className="max-w-3xl mx-auto mb-4 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-900 dark:text-amber-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+            <div className="flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong>Render Environment Notice:</strong> Missing <code className="bg-amber-100 dark:bg-amber-900/60 font-mono px-1 py-0.5 rounded text-[11px]">GEMINI_API_KEY</code> on Render. Built-in Indian Tech Catalog is active to prevent random prices.
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+              <button
+                onClick={() => setIsRenderGuideOpen(true)}
+                className="text-amber-800 dark:text-amber-200 font-bold underline hover:opacity-80 text-xs cursor-pointer"
+              >
+                Render Guide
+              </button>
+              <button
+                onClick={() => setDismissGeminiTip(true)}
+                className="text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200 text-xs font-semibold px-2 py-0.5 rounded cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Search Hero Area */}
         <div ref={searchSectionRef} className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 bg-zinc-900/5 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full text-[11px] sm:text-xs font-medium mb-3 sm:mb-4 max-w-full truncate">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="truncate">Gemini AI Price Intelligence & Google Shopping India (₹ INR)</span>
+            <span className="truncate">Google Shopping India Live Price Engine (₹ INR)</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight mb-3 sm:mb-4 font-['Syne'] text-balance">
@@ -477,7 +530,7 @@ export default function App() {
           </h1>
 
           <p className="text-xs sm:text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto mb-6 sm:mb-8 leading-relaxed px-1">
-            Gemini estimates the authentic price of the product and surfaces real offers around that price first, filtering out phone covers and accessories.
+            Real prices in Indian Rupees (₹) with phone covers and low-cost accessories automatically separated so you see authentic device deals first.
           </p>
 
           <SearchBar
@@ -497,7 +550,7 @@ export default function App() {
                 <p className="mt-1 text-red-800 dark:text-red-300 leading-relaxed break-words">{errorMessage}</p>
                 {errorCode === 'MISSING_API_KEY' ? (
                   <p className="mt-2 text-red-700 dark:text-red-400 leading-relaxed">
-                    Please ensure the <code className="bg-red-100 dark:bg-red-900/60 font-mono px-1 rounded">SERPAPI_KEY</code> environment variable is set on the server.
+                    Please ensure the <code className="bg-red-100 dark:bg-red-900/60 font-mono px-1 rounded">SERPAPI_KEY</code> environment variable is set in Render Dashboard.
                   </p>
                 ) : (
                   currentSearchTerm && (
@@ -526,7 +579,7 @@ export default function App() {
         {/* Active Results Display */}
         {!isLoading && products.length > 0 && (
           <div className="space-y-4 sm:space-y-6">
-            {/* Gemini AI Estimated Price Intelligence Banner */}
+            {/* Price Intelligence Banner (Gemini or Heuristic) */}
             {aiEstimate && aiEstimate.estimatedPriceINR > 0 && (
               <div className="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-blue-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-xs overflow-hidden">
                 <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
@@ -536,14 +589,18 @@ export default function App() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                       <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                        Gemini AI Price Intelligence
+                        {aiEstimate.source === 'gemini-ai'
+                          ? '⚡ Gemini AI Price Intelligence'
+                          : aiEstimate.source === 'indian-tech-catalog'
+                          ? '🇮🇳 Indian Tech Catalog Verified'
+                          : 'Smart Price Intelligence'}
                       </span>
                       <span className="px-1.5 py-0.5 bg-emerald-200/70 dark:bg-emerald-900/70 text-emerald-900 dark:text-emerald-200 text-[10px] font-bold rounded-full whitespace-nowrap">
                         Target Price Match Active
                       </span>
                     </div>
                     <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed break-words">
-                      Gemini estimated retail price for <strong className="break-all">"{currentSearchTerm}"</strong> is ~<strong className="text-emerald-800 dark:text-emerald-300 tabular-nums">{formatINR(aiEstimate.estimatedPriceINR)}</strong> (typical range: {formatINR(aiEstimate.minRealisticPriceINR)} – {formatINR(aiEstimate.maxRealisticPriceINR)}). Authentic products matching this real price are prioritized on top.
+                      Estimated authentic market price for <strong className="break-all">"{currentSearchTerm}"</strong> is ~<strong className="text-emerald-800 dark:text-emerald-300 tabular-nums">{formatINR(aiEstimate.estimatedPriceINR)}</strong> (typical range: {formatINR(aiEstimate.minRealisticPriceINR)} – {formatINR(aiEstimate.maxRealisticPriceINR)}). {aiEstimate.explanation || 'Authentic products matching this real price are prioritized on top.'}
                     </p>
                   </div>
                 </div>
@@ -558,7 +615,7 @@ export default function App() {
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 hidden sm:block uppercase font-medium">
-                      AI Target Price
+                      Target Price
                     </span>
                     <span className="text-base sm:text-lg font-extrabold text-emerald-700 dark:text-emerald-300 tabular-nums">
                       {formatINR(aiEstimate.estimatedPriceINR)}
@@ -724,7 +781,7 @@ export default function App() {
                 AI-Powered Price Comparison in India (₹)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                Type any mobile, laptop, headphone, or gadget above. Gemini AI calculates the realistic product price and prioritizes authentic deals across Amazon, Flipkart, Croma, and Reliance Digital.
+                Type any mobile, laptop, headphone, or gadget above. Our price engine automatically targets authentic product prices and prioritizes real offers across Amazon, Flipkart, Croma, and Reliance Digital.
               </p>
             </div>
 
@@ -733,10 +790,10 @@ export default function App() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-1.5 text-zinc-900 dark:text-zinc-100 font-semibold text-xs sm:text-sm">
                   <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span>Gemini AI Price Targeting</span>
+                  <span>Target Price Calibration</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Automatically estimates genuine device pricing so phone cases and ₹150 covers never outrank authentic smartphones.
+                  Estimates genuine device pricing so phone cases and ₹150 covers never outrank authentic smartphones.
                 </p>
               </div>
 
@@ -776,13 +833,20 @@ export default function App() {
         onClose={() => setIsTrendModalOpen(false)}
       />
 
+      {/* Render Setup & Troubleshooting Guide Modal */}
+      <RenderGuideModal
+        isOpen={isRenderGuideOpen}
+        onClose={() => setIsRenderGuideOpen(false)}
+        serverStatus={serverStatus}
+      />
+
       {/* Footer */}
       <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-5 sm:py-6 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 dark:text-zinc-400">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-['Syne']">PriceScope India</span>
             <span>·</span>
-            <span>Powered by Gemini AI & Google Shopping India</span>
+            <span>Powered by Google Shopping India & Price Intelligence</span>
           </div>
 
           <div className="flex items-center gap-4">

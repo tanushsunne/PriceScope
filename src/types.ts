@@ -26,6 +26,8 @@ export interface AiPriceEstimate {
   minRealisticPriceINR: number;
   maxRealisticPriceINR: number;
   isAccessoryQuery: boolean;
+  isHeuristic?: boolean;
+  source?: 'gemini-ai' | 'indian-tech-catalog' | 'market-median';
   explanation?: string;
 }
 
@@ -43,8 +45,11 @@ export interface ShoppingProduct {
   originalIndex: number;
   isRefurbished?: boolean;
   isPopularStore?: boolean;
+  isCrossBorderImport?: boolean;
   isAccessory?: boolean;
   isNearTargetPrice?: boolean;
+  isExactModelMatch?: boolean;
+  isMismatched?: boolean;
   priceDiffFromTarget?: number;
   condition?: 'new' | 'refurbished';
   trend?: PriceTrendData;
@@ -71,11 +76,32 @@ export interface PriceInsights {
   totalDeals: number;
 }
 
+export interface ServerStatusResponse {
+  configured: boolean;
+  geminiConfigured: boolean;
+  model: string;
+  isRender: boolean;
+  environment: string;
+  timestamp: string;
+  guidance?: {
+    serpapi: string;
+    gemini: string;
+  };
+}
+
 export interface SearchApiResponse {
   query?: string;
   aiEstimate?: AiPriceEstimate | null;
+  geminiActive?: boolean;
+  estimateSource?: 'gemini-ai' | 'indian-tech-catalog' | 'market-median';
   total?: number;
   results: ShoppingProduct[];
+  serverDiagnostics?: {
+    serpConfigured: boolean;
+    geminiConfigured: boolean;
+    geminiActive: boolean;
+    isRender: boolean;
+  };
   error?: string;
   code?: string;
 }
