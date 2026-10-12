@@ -14,18 +14,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Zone */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onScrollToSearch}
-            className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer"
+            className="flex items-center gap-2 text-left group focus:outline-none cursor-pointer shrink-0"
             aria-label="PriceScope Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 font-bold text-base shadow-sm group-hover:bg-zinc-800 dark:group-hover:bg-white transition-colors">
-              <span className="font-['Syne'] tracking-tighter">P$</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 font-bold text-xs sm:text-sm shadow-sm group-hover:bg-zinc-800 dark:group-hover:bg-white transition-colors">
+              <span className="font-['Syne'] tracking-tighter">P₹</span>
             </div>
-            <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-['Syne']">
+            <span className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-['Syne']">
               PriceScope
             </span>
           </button>
@@ -42,11 +42,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Action Zone: Dark Mode Toggle & Search Action */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={onToggleDarkMode}
-            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="p-1.5 sm:p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
             aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
@@ -59,10 +59,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={onScrollToSearch}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white rounded-lg transition-colors cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white rounded-lg transition-colors cursor-pointer shadow-xs whitespace-nowrap"
           >
             <Search className="w-3.5 h-3.5" />
-            <span>Search Prices</span>
+            <span className="hidden sm:inline">Search Prices</span>
+            <span className="sm:hidden">Search</span>
           </button>
         </div>
       </div>

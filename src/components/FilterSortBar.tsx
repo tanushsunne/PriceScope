@@ -30,7 +30,7 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
   onConditionFilterChange,
   countNew,
   countRefurbished,
-  countPopular,
+  countPopular: _countPopular,
   retailers,
   selectedRetailers,
   onToggleRetailer,
@@ -49,13 +49,13 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
     selectedRetailers.length > 0 || minPrice !== '' || maxPrice !== '' || conditionFilter !== 'all';
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-3.5 mb-6 shadow-xs transition-colors space-y-3">
+    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 sm:p-3.5 mb-6 shadow-xs transition-colors space-y-3 overflow-hidden">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Count and Quick Filter Toggle */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+        <div className="flex items-center justify-between md:justify-start gap-2.5 w-full md:w-auto">
+          <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
             {totalFiltered === totalRaw ? (
-              <span>{totalRaw} Indian Offers Found</span>
+              <span>{totalRaw} Offers Found</span>
             ) : (
               <span>
                 {totalFiltered} of {totalRaw} Offers
@@ -63,43 +63,45 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
             )}
           </span>
 
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-              showFilters || hasActiveFilters
-                ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100'
-                : 'bg-zinc-50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filters</span>
-            {hasActiveFilters && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 ml-0.5" />
-            )}
-          </button>
-
-          {hasActiveFilters && (
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              onClick={onResetFilters}
-              className="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 inline-flex items-center gap-1 transition-colors cursor-pointer"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                showFilters || hasActiveFilters
+                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100'
+                  : 'bg-zinc-50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+              }`}
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset</span>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Filters</span>
+              {hasActiveFilters && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-0.5" />
+              )}
             </button>
-          )}
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={onResetFilters}
+                className="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 inline-flex items-center gap-1 px-1.5 py-1 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Condition Filter Segmented Tabs & Sort Dropdown */}
-        <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full md:w-auto">
           {/* Condition Segmented Controls */}
           {countRefurbished > 0 && (
-            <div className="inline-flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs">
+            <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs overflow-x-auto no-scrollbar w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => onConditionFilterChange('all')}
-                className={`px-2.5 py-1 font-medium rounded-md transition-colors cursor-pointer ${
+                className={`flex-1 sm:flex-initial px-2.5 py-1 font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap text-center ${
                   conditionFilter === 'all'
                     ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
@@ -110,19 +112,19 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
               <button
                 type="button"
                 onClick={() => onConditionFilterChange('new')}
-                className={`px-2.5 py-1 font-medium rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
+                className={`flex-1 sm:flex-initial px-2.5 py-1 font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap text-center flex items-center justify-center gap-1 ${
                   conditionFilter === 'new'
                     ? 'bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-400 shadow-2xs font-semibold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
                 }`}
               >
                 <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                <span>Brand New ({countNew})</span>
+                <span>New ({countNew})</span>
               </button>
               <button
                 type="button"
                 onClick={() => onConditionFilterChange('refurbished')}
-                className={`px-2.5 py-1 font-medium rounded-md transition-colors cursor-pointer ${
+                className={`flex-1 sm:flex-initial px-2.5 py-1 font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap text-center ${
                   conditionFilter === 'refurbished'
                     ? 'bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-400 shadow-2xs font-semibold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
@@ -134,8 +136,8 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
           )}
 
           {/* Sort Dropdown */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="sort-select" className="text-xs font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <label htmlFor="sort-select" className="text-xs font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
               <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
               <span>Sort:</span>
             </label>
@@ -143,10 +145,10 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
               id="sort-select"
               value={sortOption}
               onChange={(e) => onSortChange(e.target.value as SortOption)}
-              className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-750 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-800 dark:focus:ring-zinc-400 transition-colors cursor-pointer"
+              className="w-full sm:w-auto text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-750 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-800 dark:focus:ring-zinc-400 transition-colors cursor-pointer truncate"
             >
-              <option value="ai_match">AI Price Match (Around Estimated Price)</option>
-              <option value="popular_first">Popular Stores First (Amazon, Flipkart, etc.)</option>
+              <option value="ai_match">AI Price Match (Around Target)</option>
+              <option value="popular_first">Popular Stores First</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
               <option value="retailer_asc">Retailer Name (A-Z)</option>
@@ -166,7 +168,7 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
               Price Range (₹ INR)
             </span>
             <div className="flex items-center gap-2">
-              <div className="relative flex-1">
+              <div className="relative flex-1 min-w-0">
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 font-semibold">
                   ₹
                 </span>
@@ -179,8 +181,8 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
                   min="0"
                 />
               </div>
-              <span className="text-zinc-400 dark:text-zinc-600 text-xs">—</span>
-              <div className="relative flex-1">
+              <span className="text-zinc-400 dark:text-zinc-600 text-xs shrink-0">—</span>
+              <div className="relative flex-1 min-w-0">
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 font-semibold">
                   ₹
                 </span>
@@ -199,15 +201,15 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
           {/* Retailer Multi-select Filter */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-zinc-400" />
-                <span>Filter by Indian Retailer ({retailers.length})</span>
+              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1 truncate">
+                <Building2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <span className="truncate">Indian Retailers ({retailers.length})</span>
               </span>
               {selectedRetailers.length > 0 && (
                 <button
                   type="button"
                   onClick={onClearRetailers}
-                  className="text-[11px] text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 cursor-pointer"
+                  className="text-[11px] text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 cursor-pointer shrink-0"
                 >
                   Clear ({selectedRetailers.length})
                 </button>
@@ -222,7 +224,7 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
                     key={r.name}
                     type="button"
                     onClick={() => onToggleRetailer(r.name)}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors cursor-pointer max-w-full ${
                       isSelected
                         ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium'
                         : r.isPopular
@@ -230,9 +232,9 @@ export const FilterSortBar: React.FC<FilterSortBarProps> = ({
                         : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
                     }`}
                   >
-                    {isSelected && <Check className="w-3 h-3" />}
+                    {isSelected && <Check className="w-3 h-3 shrink-0" />}
                     <span className="truncate max-w-[120px]">{r.name}</span>
-                    <span className={`text-[10px] ${isSelected ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
+                    <span className={`text-[10px] shrink-0 ${isSelected ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
                       ({r.count})
                     </span>
                   </button>

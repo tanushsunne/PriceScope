@@ -19,7 +19,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div
-      className={`group relative flex flex-col justify-between bg-white dark:bg-zinc-900 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group relative flex flex-col justify-between bg-white dark:bg-zinc-900 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md overflow-hidden ${
         isLowestPrice
           ? 'border-emerald-500/60 dark:border-emerald-500/50 ring-1 ring-emerald-500/20 shadow-xs'
           : product.isNearTargetPrice
@@ -31,38 +31,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     >
       {/* Top Banner for Lowest Genuine Price, AI Match, or Refurbished Status */}
       {isLowestPrice && !product.isRefurbished && !product.isAccessory ? (
-        <div className="absolute -top-3 left-4 z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-full shadow-sm">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Lowest Brand New Price</span>
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
+          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-emerald-600 text-white text-[10px] sm:text-xs font-semibold rounded-full shadow-sm truncate">
+            <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span className="truncate">Lowest Price</span>
           </div>
         </div>
       ) : product.isRefurbished ? (
-        <div className="absolute -top-3 left-4 z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 text-[11px] font-semibold rounded-full shadow-2xs">
-            <span>Refurbished / Pre-Owned</span>
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 text-[10px] sm:text-[11px] font-semibold rounded-full shadow-2xs truncate">
+            <span className="truncate">Refurbished / Pre-Owned</span>
           </div>
         </div>
       ) : product.isNearTargetPrice ? (
-        <div className="absolute -top-3 left-4 z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold rounded-full shadow-2xs">
-            <Target className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-            <span>AI Price Match</span>
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-semibold rounded-full shadow-2xs truncate">
+            <Target className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="truncate">AI Price Match</span>
           </div>
         </div>
       ) : product.isAccessory ? (
-        <div className="absolute -top-3 left-4 z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-[11px] font-medium rounded-full shadow-2xs">
-            <span>Accessory / Cover</span>
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 max-w-[85%]">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-[10px] sm:text-[11px] font-medium rounded-full shadow-2xs truncate">
+            <span className="truncate">Accessory / Cover</span>
           </div>
         </div>
       ) : null}
 
       {/* Card Body */}
-      <div className="p-4 sm:p-5 flex flex-col flex-1">
+      <div className="p-3.5 sm:p-5 flex flex-col flex-1 pt-8 sm:pt-9">
         {/* Retailer Header & Rank */}
-        <div className="flex items-center justify-between gap-2 mb-3 text-xs">
-          <div className="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300 truncate">
+        <div className="flex items-center justify-between gap-1.5 mb-2.5 text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300 min-w-0 flex-1">
             <span
               className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
                 product.isPopularStore
@@ -72,9 +72,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             />
             <span className="truncate font-semibold">{product.source}</span>
             {product.isPopularStore && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-sm shrink-0">
-                <BadgeCheck className="w-3 h-3" />
-                <span>Top Store</span>
+              <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-[9px] sm:text-[10px] font-bold rounded-sm shrink-0">
+                <BadgeCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span>Top</span>
               </span>
             )}
           </div>
@@ -84,7 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Thumbnail Showcase */}
-        <div className="relative w-full aspect-square sm:aspect-[4/3] bg-zinc-50 dark:bg-zinc-800/50 rounded-lg overflow-hidden flex items-center justify-center p-3 mb-4 border border-zinc-100 dark:border-zinc-800 group-hover:bg-white dark:group-hover:bg-zinc-800/80 transition-colors">
+        <div className="relative w-full aspect-square sm:aspect-[4/3] bg-zinc-50 dark:bg-zinc-800/50 rounded-lg overflow-hidden flex items-center justify-center p-2.5 sm:p-3 mb-3 sm:mb-4 border border-zinc-100 dark:border-zinc-800 group-hover:bg-white dark:group-hover:bg-zinc-800/80 transition-colors">
           {product.thumbnail && !imageError ? (
             <img
               src={product.thumbnail}
@@ -95,25 +95,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               loading="lazy"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-600 gap-1.5">
-              <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
-              <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">No preview available</span>
+            <div className="flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-600 gap-1">
+              <ShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 stroke-[1.5]" />
+              <span className="text-[10px] sm:text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">No preview</span>
             </div>
           )}
         </div>
 
         {/* Product Title */}
         <h3
-          className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-snug mb-3 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors"
+          className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-snug mb-3 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors break-words"
           title={product.title}
         >
           {product.title}
         </h3>
 
-        {/* Clean Metadata Line (Zero-pill discipline) */}
-        <div className="flex items-center flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400 mb-4 mt-auto pt-1">
+        {/* Metadata Line */}
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 mb-3 mt-auto pt-1">
           <span
-            className={`font-medium ${
+            className={`font-medium shrink-0 ${
               product.isRefurbished
                 ? 'text-amber-700 dark:text-amber-400'
                 : product.isAccessory
@@ -121,44 +121,44 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 : 'text-emerald-700 dark:text-emerald-400'
             }`}
           >
-            {product.isRefurbished ? 'Refurbished' : product.isAccessory ? 'Case / Accessory' : 'Brand New'}
+            {product.isRefurbished ? 'Refurbished' : product.isAccessory ? 'Accessory' : 'Brand New'}
           </span>
 
-          <span className="text-zinc-300 dark:text-zinc-600" aria-hidden="true">·</span>
-
           {product.rating !== null && product.rating !== undefined && (
-            <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
-              <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-500 dark:stroke-amber-400" />
-              <span className="tabular-nums">{product.rating.toFixed(1)}</span>
-              {product.reviews ? (
-                <span className="text-zinc-400 dark:text-zinc-500 font-normal">
-                  ({product.reviews.toLocaleString()})
-                </span>
-              ) : null}
-            </div>
+            <>
+              <span className="text-zinc-300 dark:text-zinc-600 shrink-0" aria-hidden="true">·</span>
+              <div className="flex items-center gap-0.5 sm:gap-1 text-amber-600 dark:text-amber-400 font-medium shrink-0">
+                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 stroke-amber-500 dark:stroke-amber-400" />
+                <span className="tabular-nums">{product.rating.toFixed(1)}</span>
+                {product.reviews ? (
+                  <span className="text-zinc-400 dark:text-zinc-500 font-normal">
+                    ({product.reviews.toLocaleString()})
+                  </span>
+                ) : null}
+              </div>
+            </>
           )}
 
-          {product.rating && product.delivery ? (
-            <span className="text-zinc-300 dark:text-zinc-600" aria-hidden="true">·</span>
-          ) : null}
-
           {product.delivery ? (
-            <div className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300">
-              <Truck className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
-              <span className="truncate max-w-[140px]">{product.delivery}</span>
-            </div>
+            <>
+              <span className="text-zinc-300 dark:text-zinc-600 shrink-0" aria-hidden="true">·</span>
+              <div className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300 min-w-0">
+                <Truck className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                <span className="truncate max-w-[110px] sm:max-w-[140px]">{product.delivery}</span>
+              </div>
+            </>
           ) : null}
         </div>
       </div>
 
       {/* Card Footer: Price & CTA Actions */}
-      <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-zinc-50/75 dark:bg-zinc-800/40 border-t border-zinc-100 dark:border-zinc-800 rounded-b-xl flex items-center justify-between gap-2">
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-medium text-zinc-400 dark:text-zinc-500 tracking-wider">
+      <div className="px-3 py-2.5 sm:px-5 sm:py-3.5 bg-zinc-50/75 dark:bg-zinc-800/40 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-1.5 sm:gap-2">
+        <div className="flex flex-col min-w-0 flex-1 mr-1">
+          <span className="text-[9px] sm:text-[10px] uppercase font-medium text-zinc-400 dark:text-zinc-500 tracking-wider truncate">
             Price (INR)
           </span>
           <span
-            className={`text-lg font-bold tabular-nums tracking-tight ${
+            className={`text-base sm:text-lg font-bold tabular-nums tracking-tight truncate ${
               isLowestPrice ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-900 dark:text-zinc-100'
             }`}
           >
@@ -166,14 +166,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             type="button"
             onClick={() => onViewTrend(product)}
-            className="inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700/80 transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center justify-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700/80 transition-all cursor-pointer shadow-2xs shrink-0"
             title="View 30-day price trend & deal rating"
           >
-            <LineChart className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <LineChart className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span className="hidden sm:inline">30d Trend</span>
           </button>
 
@@ -181,10 +181,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             href={product.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+            className={`inline-flex items-center justify-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-xs ${
               isLowestPrice
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
-                : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-white shadow-xs'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-white'
             }`}
             aria-label={`View deal for ${product.title} on ${product.source}`}
           >

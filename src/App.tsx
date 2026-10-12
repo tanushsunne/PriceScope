@@ -235,8 +235,7 @@ export default function App() {
     });
   }, [products, conditionFilter, selectedRetailers, minPrice, maxPrice]);
 
-  // Sort filtered products:
-  // ai_match: products around the Gemini estimated price appear first!
+  // Sort filtered products
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
 
@@ -457,7 +456,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-100/60 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-zinc-100/60 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-200 overflow-x-hidden w-full">
       {/* Top Bar Navigation */}
       <Navbar
         onScrollToSearch={scrollToSearch}
@@ -465,19 +464,19 @@ export default function App() {
         onToggleDarkMode={toggleDarkMode}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 overflow-x-hidden">
         {/* Search Hero Area */}
-        <div ref={searchSectionRef} className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-900/5 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full text-xs font-medium mb-4">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Gemini AI Price Intelligence & Google Shopping India (₹ INR)</span>
+        <div ref={searchSectionRef} className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 bg-zinc-900/5 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full text-[11px] sm:text-xs font-medium mb-3 sm:mb-4 max-w-full truncate">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="truncate">Gemini AI Price Intelligence & Google Shopping India (₹ INR)</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight mb-4 font-['Syne'] text-balance">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight mb-3 sm:mb-4 font-['Syne'] text-balance">
             Compare Indian Store Prices in Seconds
           </h1>
 
-          <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto mb-8 leading-relaxed">
+          <p className="text-xs sm:text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto mb-6 sm:mb-8 leading-relaxed px-1">
             Gemini estimates the authentic price of the product and surfaces real offers around that price first, filtering out phone covers and accessories.
           </p>
 
@@ -490,12 +489,12 @@ export default function App() {
 
         {/* Error State Banner */}
         {errorMessage && !isLoading && (
-          <div className="max-w-3xl mx-auto mb-8 p-4 sm:p-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl text-red-900 dark:text-red-300 text-xs shadow-xs">
-            <div className="flex items-start gap-3">
+          <div className="max-w-3xl mx-auto mb-6 sm:mb-8 p-3.5 sm:p-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl text-red-900 dark:text-red-300 text-xs shadow-xs">
+            <div className="flex items-start gap-2.5 sm:gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-sm text-red-900 dark:text-red-200">Search Error</h3>
-                <p className="mt-1 text-red-800 dark:text-red-300 leading-relaxed">{errorMessage}</p>
+                <p className="mt-1 text-red-800 dark:text-red-300 leading-relaxed break-words">{errorMessage}</p>
                 {errorCode === 'MISSING_API_KEY' ? (
                   <p className="mt-2 text-red-700 dark:text-red-400 leading-relaxed">
                     Please ensure the <code className="bg-red-100 dark:bg-red-900/60 font-mono px-1 rounded">SERPAPI_KEY</code> environment variable is set on the server.
@@ -518,44 +517,50 @@ export default function App() {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="space-y-6">
-            <div className="h-28 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 animate-pulse flex items-center justify-between" />
+          <div className="space-y-4 sm:space-y-6">
+            <div className="h-24 sm:h-28 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 animate-pulse flex items-center justify-between" />
             <SkeletonGrid />
           </div>
         )}
 
         {/* Active Results Display */}
         {!isLoading && products.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Gemini AI Estimated Price Intelligence Banner */}
             {aiEstimate && aiEstimate.estimatedPriceINR > 0 && (
-              <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-blue-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+              <div className="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-blue-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-xs overflow-hidden">
+                <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                       <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
                         Gemini AI Price Intelligence
                       </span>
-                      <span className="px-2 py-0.5 bg-emerald-200/70 dark:bg-emerald-900/70 text-emerald-900 dark:text-emerald-200 text-[10px] font-bold rounded-full">
+                      <span className="px-1.5 py-0.5 bg-emerald-200/70 dark:bg-emerald-900/70 text-emerald-900 dark:text-emerald-200 text-[10px] font-bold rounded-full whitespace-nowrap">
                         Target Price Match Active
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                      Gemini analyzed <strong>"{currentSearchTerm}"</strong> and estimated authentic market price at ~<strong className="text-emerald-800 dark:text-emerald-300">{formatINR(aiEstimate.estimatedPriceINR)}</strong> (typical device range: {formatINR(aiEstimate.minRealisticPriceINR)} – {formatINR(aiEstimate.maxRealisticPriceINR)}). Products matching this real price are prioritized on top.
+                    <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed break-words">
+                      Gemini estimated retail price for <strong className="break-all">"{currentSearchTerm}"</strong> is ~<strong className="text-emerald-800 dark:text-emerald-300 tabular-nums">{formatINR(aiEstimate.estimatedPriceINR)}</strong> (typical range: {formatINR(aiEstimate.minRealisticPriceINR)} – {formatINR(aiEstimate.maxRealisticPriceINR)}). Authentic products matching this real price are prioritized on top.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 self-end md:self-auto shrink-0 bg-white/80 dark:bg-zinc-900/80 px-3.5 py-2 rounded-lg border border-emerald-200/60 dark:border-emerald-800/40">
-                  <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 bg-white/80 dark:bg-zinc-900/80 px-3 py-2 rounded-lg border border-emerald-200/60 dark:border-emerald-800/40 w-full sm:w-auto">
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-medium sm:hidden">
+                    <Target className="w-4 h-4" />
+                    <span>Target Price</span>
+                  </div>
+                  <div className="hidden sm:block">
+                    <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block uppercase font-medium">
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 hidden sm:block uppercase font-medium">
                       AI Target Price
                     </span>
-                    <span className="text-lg font-extrabold text-emerald-700 dark:text-emerald-300 tabular-nums">
+                    <span className="text-base sm:text-lg font-extrabold text-emerald-700 dark:text-emerald-300 tabular-nums">
                       {formatINR(aiEstimate.estimatedPriceINR)}
                     </span>
                   </div>
@@ -590,26 +595,26 @@ export default function App() {
 
             {/* Products Card Grid */}
             {sortedProducts.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-6 sm:space-y-8">
                 {/* Genuine / Brand New Section */}
                 {genuineNewResults.length > 0 && (
                   <div>
                     {conditionFilter === 'all' && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>Authentic Product Offers ({genuineNewResults.length})</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 truncate">
+                          <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">Authentic Product Offers ({genuineNewResults.length})</span>
                         </div>
                         {countPopular > 0 && (
-                          <div className="inline-flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-900/60">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                            <span>Popular Stores (Amazon, Flipkart, Croma, etc.) Prioritized on Top</span>
+                          <div className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-900/60 self-start sm:self-auto max-w-full">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                            <span className="truncate">Popular Stores (Amazon, Flipkart, etc.) on Top</span>
                           </div>
                         )}
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                       {genuineNewResults.map((product, idx) => {
                         const isLowest =
                           !product.isRefurbished &&
@@ -634,8 +639,8 @@ export default function App() {
 
                 {/* Accessory & Covers Section (Positioned Below Devices) */}
                 {accessoryResults.length > 0 && (
-                  <div className={genuineNewResults.length > 0 ? 'pt-6 border-t border-zinc-200/80 dark:border-zinc-800' : ''}>
-                    <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-zinc-100/70 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-xl">
+                  <div className={genuineNewResults.length > 0 ? 'pt-5 sm:pt-6 border-t border-zinc-200/80 dark:border-zinc-800' : ''}>
+                    <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 p-2.5 sm:p-3 bg-zinc-100/70 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-xl">
                       <div className="flex items-center gap-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
                         <Layers className="w-4 h-4 text-zinc-500 shrink-0" />
                         <span>Phone Covers, Cases & Accessories ({accessoryResults.length})</span>
@@ -645,7 +650,7 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                       {accessoryResults.map((product, idx) => (
                         <ProductCard
                           key={product.id || `${product.source}-acc-${idx}`}
@@ -661,9 +666,9 @@ export default function App() {
 
                 {/* Refurbished / Used Section (Positioned Below Genuine Prices) */}
                 {refurbishedResults.length > 0 && (
-                  <div className={(genuineNewResults.length > 0 || accessoryResults.length > 0) && conditionFilter === 'all' ? 'pt-6 border-t border-zinc-200/80 dark:border-zinc-800' : ''}>
+                  <div className={(genuineNewResults.length > 0 || accessoryResults.length > 0) && conditionFilter === 'all' ? 'pt-5 sm:pt-6 border-t border-zinc-200/80 dark:border-zinc-800' : ''}>
                     {conditionFilter === 'all' && (genuineNewResults.length > 0 || accessoryResults.length > 0) && (
-                      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl">
+                      <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 p-2.5 sm:p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl">
                         <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 dark:text-amber-300">
                           <Recycle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                           <span>Refurbished & Pre-Owned Deals ({refurbishedResults.length})</span>
@@ -674,7 +679,7 @@ export default function App() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                       {refurbishedResults.map((product, idx) => (
                         <ProductCard
                           key={product.id || `${product.source}-refurb-${idx}`}
@@ -689,8 +694,8 @@ export default function App() {
                 )}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-8 shadow-xs">
-                <ShoppingBag className="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
+              <div className="text-center py-12 sm:py-16 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-xs">
+                <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
                 <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1">
                   No matching deals found
                 </h3>
@@ -710,12 +715,12 @@ export default function App() {
 
         {/* Empty State when no search done yet */}
         {!isLoading && products.length === 0 && !errorMessage && (
-          <div className="mt-8 border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-2xl p-8 sm:p-12 shadow-xs transition-colors">
-            <div className="text-center max-w-md mx-auto mb-10">
-              <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-200 mx-auto mb-3">
-                <Search className="w-6 h-6" />
+          <div className="mt-6 sm:mt-8 border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-12 shadow-xs transition-colors overflow-hidden">
+            <div className="text-center max-w-md mx-auto mb-8 sm:mb-10">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-200 mx-auto mb-3">
+                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+              <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">
                 AI-Powered Price Comparison in India (₹)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
@@ -724,10 +729,10 @@ export default function App() {
             </div>
 
             {/* Feature Highlights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 pt-5 sm:pt-6 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex flex-col">
-                <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100 font-semibold text-sm">
-                  <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex items-center gap-2 mb-1.5 text-zinc-900 dark:text-zinc-100 font-semibold text-xs sm:text-sm">
+                  <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Gemini AI Price Targeting</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
@@ -736,8 +741,8 @@ export default function App() {
               </div>
 
               <div className="flex flex-col">
-                <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100 font-semibold text-sm">
-                  <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex items-center gap-2 mb-1.5 text-zinc-900 dark:text-zinc-100 font-semibold text-xs sm:text-sm">
+                  <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Amazon & Flipkart on Top</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
@@ -746,8 +751,8 @@ export default function App() {
               </div>
 
               <div className="flex flex-col">
-                <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100 font-semibold text-sm">
-                  <Recycle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <div className="flex items-center gap-2 mb-1.5 text-zinc-900 dark:text-zinc-100 font-semibold text-xs sm:text-sm">
+                  <Recycle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   <span>Refurbished Kept Below</span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
@@ -772,8 +777,8 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-6 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-400">
+      <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-5 sm:py-6 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 dark:text-zinc-400">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-['Syne']">PriceScope India</span>
             <span>·</span>
